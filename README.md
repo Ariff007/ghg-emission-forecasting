@@ -56,6 +56,55 @@ FIG_W, FIG_H = 14, 5
 print('✅ All libraries imported successfully')
 ```
 ---
+
+## 📂 1. Data Loading & Overview
+
+```python
+# Load datasets
+df_ghg = pd.read_csv('ghg_emissions.csv')
+df_air = pd.read_csv('air_pollution.csv')
+
+print('GHG shape:', df_ghg.shape)
+print('Air pollution shape:', df_air.shape)
+```
+
+```python
+# Convert date columns to datetime
+df_ghg['date'] = pd.to_datetime(df_ghg['date'])
+df_air['date'] = pd.to_datetime(df_air['date'])
+
+# Sort by date
+df_ghg = df_ghg.sort_values('date').reset_index(drop=True)
+df_air = df_air.sort_values('date').reset_index(drop=True)
+
+# Display basic info
+print('GHG columns:', df_ghg.columns.tolist())
+print('\nAir pollution columns:', df_air.columns.tolist())
+```
+
+```python
+# Quick overview
+print('GHG info:')
+df_ghg.info()
+print('\nAir pollution info:')
+df_air.info()
+```
+
+```python
+# Missing values
+print('GHG missing values:\n', df_ghg.isnull().sum())
+print('\nAir pollution missing values:\n', df_air.isnull().sum())
+```
+
+```python
+# Describe numeric columns
+print('GHG statistics:')
+display(df_ghg.describe())
+print('\nAir pollution statistics:')
+display(df_air.describe())
+```
+
+---
 ## 🏁 Summary & Key Takeaways
 
 | Aspect | Finding |
