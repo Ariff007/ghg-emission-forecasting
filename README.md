@@ -60,50 +60,46 @@ print('✅ All libraries imported successfully')
 ## 📂 1. Data Loading & Overview
 
 ```python
-# Load datasets
-df_ghg = pd.read_csv('ghg_emissions.csv')
-df_air = pd.read_csv('air_pollution.csv')
+# ── Load datasets ──────────────────────────────────────────────────────────────
+ghg_raw = pd.read_csv('ghg_emissions.csv', parse_dates=['date'])
+air_raw = pd.read_csv('air_pollution.csv', parse_dates=['date'])
 
-print('GHG shape:', df_ghg.shape)
-print('Air pollution shape:', df_air.shape)
+print('GHG Emissions Dataset:')
+print(ghg_raw.dtypes)
+print(f'Shape: {ghg_raw.shape}  |  Date range: {ghg_raw.date.min().year} → {ghg_raw.date.max().year}')
+print(f'Sources: {ghg_raw.source.unique().tolist()}')
+print()
+print('Air Pollution Dataset:')
+print(air_raw.dtypes)
+print(f'Shape: {air_raw.shape}  |  Date range: {air_raw.date.min()} → {air_raw.date.max()}')
+print(f'Pollutants: {air_raw.pollutant.unique().tolist()}')
 ```
 
 ```python
-# Convert date columns to datetime
-df_ghg['date'] = pd.to_datetime(df_ghg['date'])
-df_air['date'] = pd.to_datetime(df_air['date'])
-
-# Sort by date
-df_ghg = df_ghg.sort_values('date').reset_index(drop=True)
-df_air = df_air.sort_values('date').reset_index(drop=True)
-
-# Display basic info
-print('GHG columns:', df_ghg.columns.tolist())
-print('\nAir pollution columns:', df_air.columns.tolist())
+# ── GHG: pivot to wide format ──────────────────────────────────────────────────
+ghg = ghg_raw.pivot(index='date', columns='source', values='emissions').reset_index()
+ghg.columns.name = None
+ghg = ghg.sort_values('date').reset_index(drop=True)
+print('GHG (wide):')
+display(ghg)
+print(f'\nMissing values per column:\n{ghg.isnull().sum()}')
 ```
 
 ```python
-# Quick overview
-print('GHG info:')
-df_ghg.info()
-print('\nAir pollution info:')
-df_air.info()
-```
+# ── Air Pollution: pivot to wide format ───────────────────────────────────────
+air = air_raw.pivot(index='date', columns='pollutant', values='concentration').reset_index()
+air.columns.name = None
+air = air.sort_values('date').reset_index(drop=True)
 
-```python
-# Missing values
-print('GHG missing values:\n', df_ghg.isnull().sum())
-print('\nAir pollution missing values:\n', df_air.isnull().sum())
-```
+# Interpolate missing values (linear) — only PM 2.5 has a full year missing at start
+air_numeric = air.drop(columns='date')
+air_numeric = air_numeric.interpolate(method='linear', limit_direction='both')
+air = pd.concat([air[['date']], air_numeric], axis=1)
 
-```python
-# Describe numeric columns
-print('GHG statistics:')
-display(df_ghg.describe())
-print('\nAir pollution statistics:')
-display(df_air.describe())
+print('Air Pollution (wide, interpolated):')
+display(air.head(10))
+print(f'\nMissing after interpolation:\n{air.isnull().sum()}')
 ```
-
 ---
 ## 🏁 Summary & Key Takeaways
 
